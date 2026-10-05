@@ -938,7 +938,7 @@ function setPressed(id, value) {
 
 function scaleHint() {
   if (ui.look === "illustration" && ui.scale === 2) {
-    return "Enlarges 4×, then scales down to 2× so line art stays crisp.";
+    return "Upscales 4×, then scales down to 2× so line art stays crisp.";
   }
   return "";
 }
@@ -946,8 +946,8 @@ function scaleHint() {
 function taskHint() {
   const hints = {
     cutout: "Removes background with BiRefNet model.",
-    upscale: "Sharpens and enlarges using Real-ESRGAN.",
-    both: "Enlarges first, then removes background cleanly.",
+    upscale: "Sharpens and upscales using Real-ESRGAN.",
+    both: "Upscales first, then removes background cleanly.",
     resize: "Fast high-quality Lanczos resizing without AI.",
     convert: "Re-encodes image formats or traces vector SVG.",
     rename: "Batch renames files using custom rules and counters.",
@@ -957,7 +957,7 @@ function taskHint() {
 
 function fitHint() {
   const hints = {
-    none: "Keeps the enlarged or original dimensions.",
+    none: "Keeps the upscaled or original dimensions.",
     long: "Constrains longest edge to this pixel length.",
     width: "Scales width and preserves aspect ratio.",
     height: "Scales height and preserves aspect ratio.",

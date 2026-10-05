@@ -140,7 +140,7 @@ flowchart TD
 
 The user interface is built on modern Web standards with zero external JS/CSS dependencies:
 - **Design Tokens**: Defined in CSS variables (`--bg-app`, `--bg-panel`, `--accent`, `--border-subtle`) supporting macOS Dark & Light modes with instant runtime toggle.
-- **Adaptive Zero-Scroll Direct Inspector**: Replaces nested scrollbars and disjointed tabs with a clean, task-adaptive layout. Selecting a task (Cut out, Enlarge, Both, Resize, Convert, Rename) immediately exposes all relevant controls on a single, visible surface without ghost scrolling:
+- **Adaptive Zero-Scroll Direct Inspector**: Replaces nested scrollbars and disjointed tabs with a clean, task-adaptive layout. Selecting a task (Background Removal, Upscale, Both, Resize, Convert, Rename) immediately exposes all relevant controls on a single, visible surface without ghost scrolling:
   - `Scale Factor & Model Look`: Photo vs Art/Anime presets in compact paired rows.
   - `Finished Size`: Keep current size, long edge, width, height, or bounding box with dimension guards.
   - `Edge Quality & Matte`: Real-time hole filling, padding, drop shadow, and alpha/paper/custom hex backdrop.
