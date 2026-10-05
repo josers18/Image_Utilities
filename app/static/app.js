@@ -706,10 +706,20 @@ function render(data) {
   show("color-row", ui.background === "custom");
   show("number-fields", ui.number);
 
+  const enlarges = ui.task === "upscale" || ui.task === "both";
   const same = document.querySelector('#format button[data-value="same"]');
   if (same) same.hidden = ui.task !== "resize";
   const none = $("fit").querySelector('option[value="none"]');
-  if (none) none.disabled = ui.task === "resize";
+  if (none) {
+    none.disabled = ui.task === "resize";
+    if (enlarges) {
+      none.textContent = `Full AI Upscale (${ui.scale}×)`;
+      none.title = `Export at full ${ui.scale}× super-resolution`;
+    } else {
+      none.textContent = "Original size (1×)";
+      none.title = "Keep original image dimensions";
+    }
+  }
   if (document.activeElement !== $("fit")) $("fit").value = ui.fit;
 
   const lock = running || ui.picking;
@@ -743,7 +753,7 @@ function render(data) {
   syncField("no-upscale", ui.noUpscale);
   syncField("number", ui.number);
 
-  $("fit-legend").textContent = ui.task === "resize" ? "Size" : "Finished size";
+  $("fit-legend").textContent = enlarges ? "Output size:" : ui.task === "resize" ? "Resize to:" : "Size:";
   $("fit-a-label").textContent = { long: "Long edge", width: "Width", height: "Height", box: "Width", percent: "Percent" }[ui.fit] || "Size";
 
   const isPercent = ui.fit === "percent";
@@ -1083,8 +1093,11 @@ function taskHint() {
 }
 
 function fitHint() {
+  const enlarges = ui.task === "upscale" || ui.task === "both";
   const hints = {
-    none: "Keeps the upscaled or original dimensions.",
+    none: enlarges
+      ? "Exports at full AI super-resolution (no post-downscaling)."
+      : "Preserves original pixel dimensions.",
     long: "Constrains longest edge to this pixel length.",
     width: "Scales width and preserves aspect ratio.",
     height: "Scales height and preserves aspect ratio.",
