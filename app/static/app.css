@@ -172,6 +172,39 @@ button {
   background: var(--success);
 }
 
+/* Header Presets */
+.header-presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.presets-header-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  flex: none;
+}
+
+.presets-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 2px;
+  scrollbar-width: none;
+}
+
+.presets-row::-webkit-scrollbar {
+  display: none;
+}
+
 .header-tools {
   display: flex;
   align-items: center;
@@ -1144,34 +1177,85 @@ html:not([data-theme="light"]) .sun-icon { display: block; }
   flex: 1;
 }
 
-/* Presets Row */
-.preset-section {
-  flex: none;
-}
-
-.presets-row {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-}
-
+/* Presets Chips */
 .preset-chip {
-  padding: 3px 7px;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 11.5px;
   font-weight: 600;
-  background: var(--bg-subtle);
+  background: var(--bg-panel);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
   color: var(--text-muted);
   white-space: nowrap;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .preset-chip:hover {
-  background: var(--bg-panel);
+  background: var(--bg-subtle);
   border-color: var(--accent);
   color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.preset-chip.custom {
+  padding: 2px 4px 2px 8px;
+  border-color: rgba(229, 169, 60, 0.35);
+  background: var(--bg-panel);
+}
+
+.preset-label-btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  padding: 0;
+}
+
+.preset-del-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-faint);
+  margin-left: 3px;
+  transition: all var(--transition-fast);
+}
+
+.preset-del-btn:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Save as Preset Button in Run Dock */
+.btn-save-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-save-preset:hover:not(:disabled) {
+  background: var(--bg-panel);
+  border-color: var(--accent);
+  color: var(--accent);
   transform: translateY(-1px);
 }
 

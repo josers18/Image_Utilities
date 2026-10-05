@@ -37,48 +37,143 @@ const ui = {
   selectedIds: new Set(),
 };
 
-const PRESETS = {
+const BUILTIN_PRESETS = {
   product: {
-    task: "cutout",
-    background: "white",
-    trim: true,
-    padding: 32,
-    fit: "box",
-    fitA: 2048,
-    fitB: 2048,
-    format: "webp",
-    quality: 90,
-    shadow: false,
+    label: "⚡ Product",
+    title: "Product: Background Removal + White Canvas + 32px padding + Box 2048 + WebP",
+    recipe: {
+      task: "cutout",
+      background: "white",
+      trim: true,
+      padding: 32,
+      fit: "box",
+      fitA: 2048,
+      fitB: 2048,
+      format: "webp",
+      quality: 90,
+      shadow: false,
+    },
   },
   photo4x: {
-    task: "upscale",
-    scale: 4,
-    look: "photo",
-    format: "png",
-    fit: "none",
+    label: "🔍 4× Photo",
+    title: "Print/HD: 4× Upscale Photo + PNG",
+    recipe: {
+      task: "upscale",
+      scale: 4,
+      look: "photo",
+      format: "png",
+      fit: "none",
+    },
   },
   anime4x: {
-    task: "upscale",
-    scale: 4,
-    look: "illustration",
-    format: "png",
-    fit: "none",
+    label: "🎨 4× Art",
+    title: "Illustration: 4× Upscale Art + PNG",
+    recipe: {
+      task: "upscale",
+      scale: 4,
+      look: "illustration",
+      format: "png",
+      fit: "none",
+    },
   },
   webopt: {
-    task: "resize",
-    fit: "long",
-    fitA: 1920,
-    format: "webp",
-    quality: 82,
+    label: "🌐 WebP",
+    title: "Web Optimize: Resize 1920px + 82% WebP",
+    recipe: {
+      task: "resize",
+      fit: "long",
+      fitA: 1920,
+      format: "webp",
+      quality: 82,
+    },
   },
   "clean-cut": {
-    task: "cutout",
-    background: "transparent",
-    shadow: true,
-    format: "png",
-    trim: false,
+    label: "✂️ Remove BG",
+    title: "Sticker: Background Removal + Transparent + Soft Shadow",
+    recipe: {
+      task: "cutout",
+      background: "transparent",
+      shadow: true,
+      format: "png",
+      trim: false,
+    },
   },
 };
+
+function getCustomPresets() {
+  try {
+    return JSON.parse(localStorage.getItem("img_custom_presets") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveCustomPresets(presets) {
+  localStorage.setItem("img_custom_presets", JSON.stringify(presets));
+}
+
+function renderPresets() {
+  const container = $("presets");
+  if (!container) return;
+  container.innerHTML = "";
+
+  // Built-in presets
+  Object.entries(BUILTIN_PRESETS).forEach(([key, item]) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "preset-chip";
+    btn.dataset.preset = key;
+    btn.title = item.title;
+    btn.innerHTML = `<span>${item.label}</span>`;
+    btn.addEventListener("click", () => applyPreset(item.recipe, item.label));
+    container.appendChild(btn);
+  });
+
+  // Custom user presets
+  const custom = getCustomPresets();
+  Object.entries(custom).forEach(([id, item]) => {
+    const chip = document.createElement("div");
+    chip.className = "preset-chip custom";
+    chip.title = `Custom Preset: ${item.label}`;
+
+    const labelBtn = document.createElement("button");
+    labelBtn.type = "button";
+    labelBtn.className = "preset-label-btn";
+    labelBtn.innerHTML = `<span>⭐ ${escapeHtml(item.label)}</span>`;
+    labelBtn.addEventListener("click", () => applyPreset(item.settings, item.label));
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "preset-del-btn";
+    delBtn.title = "Delete this preset";
+    delBtn.textContent = "×";
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      delete custom[id];
+      saveCustomPresets(custom);
+      renderPresets();
+      toast(`Deleted preset "${item.label}"`);
+    });
+
+    chip.appendChild(labelBtn);
+    chip.appendChild(delBtn);
+    container.appendChild(chip);
+  });
+}
+
+function applyPreset(settings, label) {
+  Object.assign(ui, settings);
+  render(snapshot);
+  toast(`Preset applied: ${label}`);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 const SETTINGS_MAP = {
   task: "task",
@@ -185,16 +280,48 @@ document.querySelectorAll(".btn-backdrop").forEach((btn) => {
   });
 });
 
-// Quick Presets
-document.querySelectorAll(".preset-chip").forEach((chip) => {
-  chip.addEventListener("click", () => {
-    const name = chip.dataset.preset;
-    const recipe = PRESETS[name];
-    if (!recipe) return;
-    Object.assign(ui, recipe);
-    render(snapshot);
-    toast(`Preset applied: ${chip.textContent.trim()}`);
-  });
+// Initial render of presets toolbar
+renderPresets();
+
+// Save as Preset Handler
+$("btn-save-preset").addEventListener("click", () => {
+  const name = prompt("Name your preset (e.g., 'E-Commerce 4K', 'Square Social'):");
+  if (!name || !name.trim()) return;
+  const custom = getCustomPresets();
+  const id = "custom_" + Date.now();
+  custom[id] = {
+    label: name.trim(),
+    settings: {
+      task: ui.task,
+      scale: ui.scale,
+      look: ui.look,
+      fit: ui.fit,
+      fitA: ui.fitA,
+      fitB: ui.fitB,
+      noUpscale: ui.noUpscale,
+      edge: ui.edge,
+      fillHoles: ui.fillHoles,
+      trim: ui.trim,
+      padding: ui.padding,
+      background: ui.background,
+      backgroundHex: ui.backgroundHex,
+      shadow: ui.shadow,
+      format: ui.format,
+      quality: ui.quality,
+      alsoWebp: ui.alsoWebp,
+      srgb: ui.srgb,
+      prefix: ui.prefix,
+      suffix: ui.suffix,
+      find: ui.find,
+      replace: ui.replace,
+      number: ui.number,
+      numberStart: ui.numberStart,
+      digits: ui.digits,
+    },
+  };
+  saveCustomPresets(custom);
+  renderPresets();
+  toast(`Preset "${name.trim()}" saved to top bar!`);
 });
 
 // Clear Queue
@@ -587,10 +714,10 @@ function render(data) {
 
   const lock = running || ui.picking;
   document.querySelectorAll(".controls button, .controls input, .controls select").forEach((node) => {
-    if (node.id === "run" || node.classList.contains("preset-chip")) return;
+    if (node.id === "run") return;
     node.disabled = lock;
   });
-  document.querySelectorAll(".preset-chip").forEach((btn) => btn.disabled = lock);
+  document.querySelectorAll(".preset-chip, .preset-chip button").forEach((btn) => (btn.disabled = lock));
   document.querySelector('#save button[data-value="beside"]').disabled = lock || uploaded;
   $("padding").disabled = lock || !ui.trim;
 

@@ -25,6 +25,12 @@
         </div>
       </div>
 
+      <!-- Quick Preset Recipes along the top -->
+      <div class="header-presets" id="presets-container">
+        <span class="presets-header-label">Presets:</span>
+        <div class="presets-row" id="presets"></div>
+      </div>
+
       <div class="header-tools">
         <div class="outdir-pill" title="Destination folder for exported images">
           <svg class="pill-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -226,28 +232,6 @@
 
       <!-- Right: Inspector & Parameter Controls -->
       <aside class="panel controls" aria-label="Settings Inspector">
-        <!-- Quick Preset Recipes -->
-        <div class="preset-section">
-          <div class="presets-row" id="presets">
-            <span class="preset-tag">Preset:</span>
-            <button type="button" class="preset-chip" data-preset="product" title="Product Photo: Cutout + White Canvas + 32px padding + Box 2048 + WebP">
-              <span>⚡ Product</span>
-            </button>
-            <button type="button" class="preset-chip" data-preset="photo4x" title="Print/HD: 4× Upscale Photo + PNG">
-              <span>🔍 4× Photo</span>
-            </button>
-            <button type="button" class="preset-chip" data-preset="anime4x" title="Illustration: 4× Upscale Art + PNG">
-              <span>🎨 4× Art</span>
-            </button>
-            <button type="button" class="preset-chip" data-preset="webopt" title="Web Optimize: Resize 1920px + 82% WebP">
-              <span>🌐 WebP</span>
-            </button>
-            <button type="button" class="preset-chip" data-preset="clean-cut" title="Sticker: Background Removal + Transparent + Soft Shadow">
-              <span>✂️ Remove BG</span>
-            </button>
-          </div>
-        </div>
-
         <!-- Main Operation Selector -->
         <div class="task-block">
           <div class="seg tasks" id="task">
@@ -436,9 +420,15 @@
 
         <!-- Execution & Save Destination Dock -->
         <div class="run-dock">
-          <div class="seg" id="save">
-            <button type="button" data-value="beside" aria-pressed="true">Beside original</button>
-            <button type="button" data-value="folder" aria-pressed="false">Output folder</button>
+          <div class="card-row-between">
+            <div class="seg" id="save">
+              <button type="button" data-value="beside" aria-pressed="true">Beside original</button>
+              <button type="button" data-value="folder" aria-pressed="false">Output folder</button>
+            </div>
+            <button type="button" class="btn-save-preset" id="btn-save-preset" title="Save current settings as a reusable preset">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Save as Preset</span>
+            </button>
           </div>
           <p class="hint" id="save-hint" hidden></p>
           <button type="button" class="btn-run" id="run">Run Batch</button>

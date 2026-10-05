@@ -19,12 +19,14 @@ An Apple-grade, high-performance desktop image utility for macOS. Powered by on-
 - **Transparency Backdrops**: Switch between Dark Checkerboard, Light Checkerboard, Solid White, and Solid Black to verify alpha cutouts.
 - **1:1 Actual Size Zoom**: Toggle between "Fit to Screen" and 100% actual pixel resolution.
 
-### ⚡ 1-Click Workflow Presets
+### ⚡ 1-Click & Custom Workflow Presets (Top Navigation)
+- **Top Navigation Bar**: Presets are housed prominently along the top navigation bar for immediate 1-click access across both Studio and Grid workspaces.
 - ⚡ **Product**: Background Removal + White Canvas + 32px padding + Box 2048×2048 + WebP.
 - 🔍 **4× Photo**: 4× Upscale Photo model + PNG.
 - 🎨 **4× Art**: 4× Upscale Illustration/Anime model + PNG.
 - 🌐 **WebP**: Resize 1920px long edge + 82% WebP.
 - ✂️ **Remove BG**: Background Removal + Transparent + Soft Shadow + PNG.
+- 💾 **Save as Preset**: Configure any combination of models, matting, dimensions, and naming rules, then tap "Save as Preset" at the bottom of the inspector to persist custom reusable presets to your top bar.
 
 ### 🗂️ Batch Processing & Queue Management
 - **Dual Workspace**: Switch between **Studio View** (focused canvas with bottom filmstrip) and **Gallery Grid View** (spacious responsive cards).
