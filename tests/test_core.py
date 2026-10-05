@@ -62,6 +62,19 @@ class TileTests(unittest.TestCase):
             self.assertTrue(all(cell == 1 for row in cover for cell in row))
 
 
+class StaticAssetsTests(unittest.TestCase):
+    def test_app_js_syntax(self):
+        import shutil
+        import subprocess
+
+        js_path = Path(__file__).resolve().parent.parent / "app" / "static" / "app.js"
+        self.assertTrue(js_path.is_file())
+        node = shutil.which("node")
+        if node:
+            result = subprocess.run([node, "--check", str(js_path)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, f"app.js syntax error:\n{result.stderr}")
+
+
 if __name__ == "__main__":
     unittest.main()
 
