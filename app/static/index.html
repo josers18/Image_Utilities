@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image Utilities</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-glyph" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1 class="brand-name">Image Utilities</h1>
+          <span class="device-badge" id="device">On this Mac</span>
+        </div>
+      </div>
+
+      <div class="header-tools">
+        <div class="outdir-pill" title="Destination folder for exported images">
+          <svg class="pill-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <span class="outdir-label">Output</span>
+          <code id="output-dir"></code>
+          <button type="button" class="btn-text" id="change-dir">Change</button>
+        </div>
+
+        <button type="button" class="btn-icon" id="theme-toggle" title="Switch Theme" aria-label="Switch Theme">
+          <svg class="sun-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="moon-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="layout">
+      <!-- Left: Stage & Visual Workspace -->
+      <section class="panel stage idle" id="stage" aria-label="Pictures Workspace">
+        <!-- Stage Top Bar -->
+        <div class="stage-head">
+          <div class="stage-info">
+            <h2 id="stage-title">Workspace</h2>
+            <div class="stage-meta-row">
+              <span class="count-badge" id="stage-count">0 pictures</span>
+              <button type="button" class="btn-ghost-sm" id="clear-all" hidden>Clear queue</button>
+            </div>
+          </div>
+
+          <div class="stage-actions">
+            <!-- View Mode Switcher -->
+            <div class="view-mode-toggle" id="view-mode" role="group" aria-label="View Mode">
+              <button type="button" class="btn-view active" id="view-mode-studio" data-mode="studio" title="Studio Inspector View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                <span>Studio</span>
+              </button>
+              <button type="button" class="btn-view" id="view-mode-grid" data-mode="grid" title="Gallery Grid View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Grid</span>
+              </button>
+            </div>
+
+            <div class="stage-buttons">
+              <button type="button" class="btn-secondary" id="choose-files">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Add images</span>
+              </button>
+              <button type="button" class="btn-secondary" id="choose-folder">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>Folder</span>
+              </button>
+              <label class="check-pill" title="Include all nested subfolders">
+                <input type="checkbox" id="subfolders">
+                <span>Subfolders</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="overall-progress" id="overall" hidden>
+          <div class="progress-bar-track">
+            <span class="progress-bar-fill" id="overall-bar"></span>
+          </div>
+          <span class="progress-text" id="overall-text">Processing batch…</span>
+        </div>
+
+        <p class="notice" id="notice" hidden></p>
+
+        <!-- Main Display Canvas / Well -->
+        <div class="canvas-viewport" id="well">
+          <!-- Drag & Drop Zone -->
+          <div class="drop-zone" id="drop">
+            <div class="drop-card">
+              <div class="drop-icon-wrap">
+                <svg class="drop-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <h3 class="drop-title">Drop images or folders here</h3>
+              <p class="drop-sub">On-device AI upscale, cutout, resize, and convert with Apple Silicon Metal acceleration</p>
+              <div class="format-pills">
+                <span>JPEG</span><span>PNG</span><span>WebP</span><span>TIFF</span><span>HEIC</span><span>AVIF</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Single/Source Image Waiting Preview -->
+          <div class="source-view" id="source-view" hidden>
+            <div class="frame-slot" id="source-slot">
+              <img id="source-preview" alt="Source preview">
+            </div>
+            <div class="preview-footer-bar">
+              <p class="caption-text" id="source-caption"></p>
+            </div>
+          </div>
+
+          <!-- Studio Comparison Viewer -->
+          <div class="frame-wrap" id="frame-wrap" hidden>
+            <!-- Viewer Toolbar -->
+            <div class="viewer-top-bar">
+              <div class="viewer-mode-selector" id="compare-mode-seg" role="group" aria-label="Comparison Mode">
+                <button type="button" class="btn-seg active" data-compare="split" title="Interactive Split Curtain">Split</button>
+                <button type="button" class="btn-seg" data-compare="side" title="Side by Side">Side by Side</button>
+                <button type="button" class="btn-seg" data-compare="hold" id="btn-peek" title="Hold Spacebar to Peek Original">Peek Original</button>
+              </div>
+
+              <!-- Transparency Backdrop Options -->
+              <div class="backdrop-picker" title="Preview transparency backdrop">
+                <span class="label-tiny">Backdrop</span>
+                <button type="button" class="btn-backdrop dark-check active" data-backdrop="dark-check" title="Dark checkerboard"></button>
+                <button type="button" class="btn-backdrop light-check" data-backdrop="light-check" title="Light checkerboard"></button>
+                <button type="button" class="btn-backdrop white" data-backdrop="white" title="White"></button>
+                <button type="button" class="btn-backdrop black" data-backdrop="black" title="Black"></button>
+              </div>
+            </div>
+
+            <!-- Frame / Canvas Slot -->
+            <div class="frame-slot" id="frame-slot">
+              <div class="frame backdrop-dark-check" id="frame">
+                <!-- Comparison Container -->
+                <div class="zoom" id="zoom">
+                  <img id="before" alt="Original">
+                  <img id="after" alt="Result">
+                  <div class="handle" id="handle">
+                    <span class="handle-thumb"></span>
+                  </div>
+                  <span class="tag left">Original</span>
+                  <span class="tag right">Result</span>
+                  <input id="split" type="range" min="0" max="1000" value="500" aria-label="Compare original and result">
+                </div>
+              </div>
+            </div>
+
+            <!-- Viewer Bottom Meta & Actions Bar -->
+            <div class="viewer-meta">
+              <div class="viewer-info">
+                <span class="viewer-chip" id="viewer-dim"></span>
+                <span class="viewer-chip" id="viewer-size"></span>
+                <span class="viewer-filename" id="viewer-caption"></span>
+              </div>
+              <div class="viewer-actions">
+                <button type="button" class="btn-tool" id="peep" aria-pressed="false" title="Toggle 100% Actual Pixel Size">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <span>1:1</span>
+                </button>
+                <button type="button" class="btn-tool" id="copy" title="Copy processed image to clipboard">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Copy</span>
+                </button>
+                <button type="button" class="btn-tool" id="reveal" title="Show saved file in macOS Finder">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  <span>Finder</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filmstrip / Queue List -->
+        <div class="queue-container" id="queue-container">
+          <div class="queue-bar-header">
+            <span class="queue-title">Batch Queue</span>
+            <span class="queue-counter" id="queue-count-tag"></span>
+          </div>
+          <ol class="list" id="list"></ol>
+        </div>
+
+        <!-- Floating Multi-Selection Action Bar -->
+        <div class="selection-bar" id="selection-bar" hidden>
+          <div class="selection-info">
+            <span class="selection-badge" id="selection-count">0 selected</span>
+          </div>
+          <div class="selection-actions">
+            <button type="button" class="btn-danger-sm" id="btn-delete-selected">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span>Delete Selected</span>
+            </button>
+            <button type="button" class="btn-ghost-sm" id="btn-deselect">Deselect (<kbd>Esc</kbd>)</button>
+          </div>
+        </div>
+
+        <!-- Smart Drag & Drop Overlay with Dual Targets -->
+        <div class="drop-overlay" id="drop-overlay" hidden>
+          <div class="drop-target-zone" id="drop-target-add">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <h3>Add to Current Queue</h3>
+            <p>Append dropped pictures to existing queue</p>
+          </div>
+          <div class="drop-target-zone" id="drop-target-replace">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <h3>Replace Queue</h3>
+            <p>Clear current queue and start fresh with dropped pictures</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Inspector & Parameter Controls -->
+      <aside class="panel controls" aria-label="Settings Inspector">
+        <!-- Quick Preset Recipes -->
+        <div class="preset-section">
+          <div class="presets-row" id="presets">
+            <span class="preset-tag">Preset:</span>
+            <button type="button" class="preset-chip" data-preset="product" title="Product Photo: Cutout + White Canvas + 32px padding + Box 2048 + WebP">
+              <span>⚡ Product</span>
+            </button>
+            <button type="button" class="preset-chip" data-preset="photo4x" title="Print/HD: 4× Upscale Photo + PNG">
+              <span>🔍 4× Photo</span>
+            </button>
+            <button type="button" class="preset-chip" data-preset="anime4x" title="Illustration: 4× Upscale Art + PNG">
+              <span>🎨 4× Art</span>
+            </button>
+            <button type="button" class="preset-chip" data-preset="webopt" title="Web Optimize: Resize 1920px + 82% WebP">
+              <span>🌐 WebP</span>
+            </button>
+            <button type="button" class="preset-chip" data-preset="clean-cut" title="Sticker: Cutout + Transparent + Soft Shadow">
+              <span>✂️ Cutout</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Operation Selector -->
+        <div class="task-block">
+          <div class="seg tasks" id="task">
+            <button type="button" data-value="cutout" aria-pressed="false" title="Remove background">
+              <span>Cut out</span>
+            </button>
+            <button type="button" data-value="upscale" aria-pressed="false" title="Enlarge image with AI">
+              <span>Enlarge</span>
+            </button>
+            <button type="button" data-value="both" aria-pressed="true" title="Enlarge first, then cut out">
+              <span>Both</span>
+            </button>
+            <button type="button" data-value="resize" aria-pressed="false" title="Standard pixel resize">
+              <span>Resize</span>
+            </button>
+            <button type="button" data-value="convert" aria-pressed="false" title="Convert file type">
+              <span>Convert</span>
+            </button>
+            <button type="button" data-value="rename" aria-pressed="false" title="Batch rename">
+              <span>Rename</span>
+            </button>
+          </div>
+          <p class="hint" id="task-hint" hidden></p>
+        </div>
+
+        <!-- Direct Zero-Scroll Parameters Container -->
+        <div class="inspector-body" id="inspector-body">
+          <!-- Upscale Options (Visible when task is upscale or both) -->
+          <div class="control-card pair" id="panel-enlarge">
+            <fieldset id="panel-scale">
+              <legend>Scale</legend>
+              <div class="seg" id="scale">
+                <button type="button" data-value="2" aria-pressed="false">2×</button>
+                <button type="button" data-value="4" aria-pressed="true">4×</button>
+              </div>
+              <p class="hint" id="scale-hint" hidden></p>
+            </fieldset>
+            <fieldset id="panel-look">
+              <legend>Model Look</legend>
+              <div class="seg" id="look">
+                <button type="button" data-value="photo" aria-pressed="true">Photo</button>
+                <button type="button" data-value="illustration" aria-pressed="false">Art / Anime</button>
+              </div>
+              <p class="hint" id="look-hint" hidden></p>
+            </fieldset>
+          </div>
+
+          <!-- Fit / Resize Options -->
+          <fieldset class="control-card" id="panel-fit">
+            <div class="card-inline-row">
+              <div class="inline-field flex-grow">
+                <span id="fit-legend">Size:</span>
+                <select id="fit">
+                  <option value="none">Keep current size</option>
+                  <option value="long">Long edge</option>
+                  <option value="width">Width</option>
+                  <option value="height">Height</option>
+                  <option value="box">Fit inside box</option>
+                  <option value="percent">Percentage</option>
+                </select>
+              </div>
+              <div class="inline-field" id="fit-fields">
+                <input id="fit-a" type="number" min="1" max="20000" inputmode="numeric" aria-label="Size" placeholder="Pixels">
+                <span id="fit-b-wrap" hidden>
+                  <input id="fit-b" type="number" min="1" max="20000" inputmode="numeric" aria-label="Height" placeholder="H">
+                </span>
+              </div>
+            </div>
+            <label class="check-toggle" id="no-upscale-row">
+              <input type="checkbox" id="no-upscale">
+              <span>Don't enlarge past original size</span>
+            </label>
+            <p class="hint" id="fit-hint" hidden></p>
+            <span id="fit-a-label" hidden></span>
+          </fieldset>
+
+          <!-- Cutout, Matte & Canvas -->
+          <fieldset class="control-card" id="panel-canvas">
+            <div class="card-row-between" id="panel-edge">
+              <legend>Edge</legend>
+              <div class="seg" id="edge">
+                <button type="button" data-value="tight" aria-pressed="false">Tighter</button>
+                <button type="button" data-value="normal" aria-pressed="true">Normal</button>
+                <button type="button" data-value="loose" aria-pressed="false">Feather</button>
+              </div>
+              <label class="check-toggle">
+                <input type="checkbox" id="fill-holes" checked>
+                <span>Fill holes</span>
+              </label>
+            </div>
+            <div class="card-inline-row mt-4">
+              <label class="check-toggle">
+                <input type="checkbox" id="trim">
+                <span>Crop</span>
+              </label>
+              <div class="inline-field" id="padding-row">
+                <span>Pad:</span>
+                <input id="padding" type="number" min="0" max="512" inputmode="numeric" aria-label="Padding">
+                <span>px</span>
+              </div>
+              <label class="check-toggle">
+                <input type="checkbox" id="shadow">
+                <span>Shadow</span>
+              </label>
+            </div>
+            <div class="card-inline-row mt-4">
+              <div class="seg" id="background">
+                <button type="button" data-value="transparent" aria-pressed="true">Alpha</button>
+                <button type="button" data-value="white" aria-pressed="false">White</button>
+                <button type="button" data-value="paper" aria-pressed="false">Paper</button>
+                <button type="button" data-value="custom" aria-pressed="false">Color</button>
+              </div>
+              <div class="color-picker-wrap" id="color-row">
+                <input id="background-hex" type="color" value="#ffffff" aria-label="Background color">
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Output File Format -->
+          <fieldset class="control-card" id="panel-file">
+            <div class="card-row-between">
+              <legend>Export</legend>
+              <div class="seg" id="format">
+                <button type="button" data-value="png" aria-pressed="true">PNG</button>
+                <button type="button" data-value="jpeg" aria-pressed="false">JPEG</button>
+                <button type="button" data-value="webp" aria-pressed="false">WebP</button>
+                <button type="button" data-value="svg" aria-pressed="false">SVG</button>
+                <button type="button" data-value="same" aria-pressed="false" id="format-same">Same</button>
+              </div>
+            </div>
+            <div class="card-inline-row mt-4">
+              <div class="inline-field" id="quality-row">
+                <span>Quality:</span>
+                <input id="quality" type="number" min="1" max="100" inputmode="numeric" aria-label="Quality">
+                <span>%</span>
+              </div>
+              <label class="check-toggle" id="webp-row">
+                <input type="checkbox" id="also-webp">
+                <span>+WebP</span>
+              </label>
+              <label class="check-toggle">
+                <input type="checkbox" id="srgb">
+                <span>sRGB</span>
+              </label>
+            </div>
+            <p class="hint" id="file-hint" hidden></p>
+          </fieldset>
+
+          <!-- Batch Renaming -->
+          <details class="control-card" id="name-more">
+            <summary id="rename-legend">File Naming</summary>
+            <div id="panel-rename">
+              <div class="fields two">
+                <input id="prefix" type="text" placeholder="Prefix" maxlength="80" aria-label="Prefix">
+                <input id="suffix" type="text" placeholder="Suffix" maxlength="80" aria-label="Suffix">
+              </div>
+              <div class="fields two">
+                <input id="find" type="text" placeholder="Find" maxlength="120" aria-label="Find in name">
+                <input id="replace" type="text" placeholder="Replace" maxlength="120" aria-label="Replacement">
+              </div>
+              <div class="card-inline-row mt-4">
+                <label class="check-toggle">
+                  <input type="checkbox" id="number">
+                  <span>Numbering</span>
+                </label>
+                <div class="fields two" id="number-fields">
+                  <div class="inline-field">
+                    <span>Start:</span>
+                    <input id="number-start" type="number" min="0" max="9999" inputmode="numeric" aria-label="Start number">
+                  </div>
+                  <div class="inline-field">
+                    <span>Digits:</span>
+                    <input id="digits" type="number" min="1" max="4" inputmode="numeric" aria-label="Digits padding">
+                  </div>
+                </div>
+              </div>
+              <p class="hint" id="rename-hint" hidden></p>
+            </div>
+          </details>
+        </div>
+
+        <!-- Execution & Save Destination Dock -->
+        <div class="run-dock">
+          <div class="seg" id="save">
+            <button type="button" data-value="beside" aria-pressed="true">Beside original</button>
+            <button type="button" data-value="folder" aria-pressed="false">Output folder</button>
+          </div>
+          <p class="hint" id="save-hint" hidden></p>
+          <button type="button" class="btn-run" id="run">Run Batch</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

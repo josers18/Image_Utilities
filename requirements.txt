@@ -1,0 +1,10 @@
+torch
+spandrel
+rembg[cpu]
+pillow
+pillow-heif
+fastapi
+uvicorn
+python-multipart
+numpy
+vtracer==0.6.15
