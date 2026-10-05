@@ -127,10 +127,16 @@ flowchart TD
     Backdrop -- Solid/Paper --> CanvasComposite[Composite on Color Canvas]
     CanvasComposite --> Fit
     Shadow -- Yes --> GenShadow[Gaussian Blur Alpha Offset & Blend]
-    Shadow -- No --> Fit
-    GenShadow --> Fit[Fit & Resize: Lanczos Resample]
-    Fit --> Color[Color Space: Optional sRGB ICC Conversion]
-    Color --> Encode[Encode Format: PNG / JPEG / WebP / SVG]
+    Shadow -- No --> Aspect
+    GenShadow --> Aspect{Pad to Aspect Ratio?}
+    Aspect -- Ratio Specified --> PadCanvas[Pad Width/Height to Target Ratio]
+    Aspect -- Auto --> Fit
+    PadCanvas --> Fit[Fit & Resize: Lanczos Resample]
+    Fit --> Sharpen{Sharpen > 0?}
+    Sharpen -- Yes --> Unsharp[Apply Unsharp Mask Filter]
+    Sharpen -- No --> Color
+    Unsharp --> Color[Color Space: Optional sRGB ICC Conversion]
+    Color --> Encode[Encode Format: PNG / JPEG / WebP / SVG + EXIF]
     Encode --> Disk[(Save to Disk)]
 ```
 
@@ -140,17 +146,23 @@ flowchart TD
 
 The user interface is built on modern Web standards with zero external JS/CSS dependencies:
 - **Design Tokens**: Defined in CSS variables (`--bg-app`, `--bg-panel`, `--accent`, `--border-subtle`) supporting macOS Dark & Light modes with instant runtime toggle.
+- **Top Presets Bar & Quick Recipe Save**: Built-in 1-click recipes (Product, 4× Art, Archival, Web Ready, Batch Rename) along the top header, plus custom recipe creation with "Save as Preset".
 - **Adaptive Zero-Scroll Direct Inspector**: Replaces nested scrollbars and disjointed tabs with a clean, task-adaptive layout. Selecting a task (Background Removal, Upscale, Both, Resize, Convert, Rename) immediately exposes all relevant controls on a single, visible surface without ghost scrolling:
   - `Scale Factor & Model Look`: Photo vs Art/Anime presets in compact paired rows.
-  - `Finished Size`: Keep current size, long edge, width, height, or bounding box with dimension guards.
+  - `Finished Size`: Context-aware dynamic labels ("Full AI Upscale 4×", "Original size 1×", Long edge, Width, Height, Bounding box, or % scale).
   - `Edge Quality & Matte`: Real-time hole filling, padding, drop shadow, and alpha/paper/custom hex backdrop.
-  - `Export Format`: Instant PNG, JPEG, WebP, SVG, and sRGB toggles.
+  - `Aspect Ratio Canvas`: Instant standardized padding for E-Commerce (1:1), Instagram (4:5), Stories (9:16), or Widescreen (16:9).
+  - `Sharpening Slider`: Integrated Unsharp Mask control (0–100%) for edge crispness.
+  - `Export Format & EXIF`: Instant PNG, JPEG, WebP, SVG, and sRGB toggles with Camera EXIF retention toggle.
   - `Collapsible File Naming`: Expandable details element for prefix, suffix, find/replace, and numbering.
 - **Pro Comparison Studio**:
   - **Curtain Split**: CSS clip-path dynamically driven by an interactive grab handle.
   - **Side-by-Side**: Synchronized dual-canvas layout for widescreen displays.
-  - **Peek Original**: Real-time opacity toggling on mouse-down or <kbd>Spacebar</kbd>.
+  - **Universal A/B Flip & Spacebar Peek**: Momentarily flip to the original image in any view mode by holding <kbd>Space</kbd> or pressing the A/B tool button.
   - **Backdrops**: Dynamic checkerboard and solid color classes on `#frame`.
+- **Batch Export & Queue Undo**:
+  - **1-Click ZIP Archive**: Instant batch download endpoint (`GET /api/batch/zip`) streaming all completed files.
+  - **Queue Undo Stack**: Full recovery of cleared queues or deleted selections via the Undo button or <kbd>Cmd</kbd> + <kbd>Z</kbd>.
 - **Multi-Selection Controller**: Tracks a `Set<string>` of selected IDs, rendering a floating action bar for bulk operations.
 
 ---
