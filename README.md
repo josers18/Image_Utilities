@@ -20,11 +20,11 @@ An Apple-grade, high-performance desktop image utility for macOS. Powered by on-
 - **1:1 Actual Size Zoom**: Toggle between "Fit to Screen" and 100% actual pixel resolution.
 
 ### ⚡ 1-Click Workflow Presets
-- ⚡ **Product**: Cutout + White Canvas + 32px padding + Box 2048×2048 + WebP.
+- ⚡ **Product**: Background Removal + White Canvas + 32px padding + Box 2048×2048 + WebP.
 - 🔍 **4× Photo**: 4× Upscale Photo model + PNG.
 - 🎨 **4× Art**: 4× Upscale Illustration/Anime model + PNG.
 - 🌐 **WebP**: Resize 1920px long edge + 82% WebP.
-- ✂️ **Cutout**: Cutout + Transparent + Soft Shadow + PNG.
+- ✂️ **Remove BG**: Background Removal + Transparent + Soft Shadow + PNG.
 
 ### 🗂️ Batch Processing & Queue Management
 - **Dual Workspace**: Switch between **Studio View** (focused canvas with bottom filmstrip) and **Gallery Grid View** (spacious responsive cards).

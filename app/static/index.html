@@ -242,8 +242,8 @@
             <button type="button" class="preset-chip" data-preset="webopt" title="Web Optimize: Resize 1920px + 82% WebP">
               <span>🌐 WebP</span>
             </button>
-            <button type="button" class="preset-chip" data-preset="clean-cut" title="Sticker: Cutout + Transparent + Soft Shadow">
-              <span>✂️ Cutout</span>
+            <button type="button" class="preset-chip" data-preset="clean-cut" title="Sticker: Background Removal + Transparent + Soft Shadow">
+              <span>✂️ Remove BG</span>
             </button>
           </div>
         </div>
@@ -251,13 +251,13 @@
         <!-- Main Operation Selector -->
         <div class="task-block">
           <div class="seg tasks" id="task">
-            <button type="button" data-value="cutout" aria-pressed="false" title="Remove background">
-              <span>Cut out</span>
+            <button type="button" data-value="cutout" aria-pressed="false" title="Remove background with AI">
+              <span>Background Removal</span>
             </button>
             <button type="button" data-value="upscale" aria-pressed="false" title="Enlarge image with AI">
               <span>Enlarge</span>
             </button>
-            <button type="button" data-value="both" aria-pressed="true" title="Enlarge first, then cut out">
+            <button type="button" data-value="both" aria-pressed="true" title="Enlarge first, then remove background">
               <span>Both</span>
             </button>
             <button type="button" data-value="resize" aria-pressed="false" title="Standard pixel resize">
@@ -306,14 +306,16 @@
                   <option value="width">Width</option>
                   <option value="height">Height</option>
                   <option value="box">Fit inside box</option>
-                  <option value="percent">Percentage</option>
+                  <option value="percent">Percentage (%)</option>
                 </select>
               </div>
               <div class="inline-field" id="fit-fields">
-                <input id="fit-a" type="number" min="1" max="20000" inputmode="numeric" aria-label="Size" placeholder="Pixels">
+                <input id="fit-a" type="number" min="1" max="20000" inputmode="numeric" aria-label="Size" placeholder="2048">
                 <span id="fit-b-wrap" hidden>
-                  <input id="fit-b" type="number" min="1" max="20000" inputmode="numeric" aria-label="Height" placeholder="H">
+                  <span>×</span>
+                  <input id="fit-b" type="number" min="1" max="20000" inputmode="numeric" aria-label="Height" placeholder="2048">
                 </span>
+                <span class="unit-badge" id="fit-unit">px</span>
               </div>
             </div>
             <label class="check-toggle" id="no-upscale-row">
@@ -354,11 +356,14 @@
               </label>
             </div>
             <div class="card-inline-row mt-4">
-              <div class="seg" id="background">
-                <button type="button" data-value="transparent" aria-pressed="true">Alpha</button>
-                <button type="button" data-value="white" aria-pressed="false">White</button>
-                <button type="button" data-value="paper" aria-pressed="false">Paper</button>
-                <button type="button" data-value="custom" aria-pressed="false">Color</button>
+              <div class="inline-field flex-grow">
+                <span>Matte:</span>
+                <div class="seg" id="background">
+                  <button type="button" data-value="transparent" aria-pressed="true" title="Transparent background (no solid canvas)">Transparent</button>
+                  <button type="button" data-value="white" aria-pressed="false" title="Solid White canvas">White</button>
+                  <button type="button" data-value="paper" aria-pressed="false" title="Warm Paper canvas">Paper</button>
+                  <button type="button" data-value="custom" aria-pressed="false" title="Custom color canvas">Color</button>
+                </div>
               </div>
               <div class="color-picker-wrap" id="color-row">
                 <input id="background-hex" type="color" value="#ffffff" aria-label="Background color">
@@ -371,11 +376,11 @@
             <div class="card-row-between">
               <legend>Export</legend>
               <div class="seg" id="format">
-                <button type="button" data-value="png" aria-pressed="true">PNG</button>
-                <button type="button" data-value="jpeg" aria-pressed="false">JPEG</button>
-                <button type="button" data-value="webp" aria-pressed="false">WebP</button>
-                <button type="button" data-value="svg" aria-pressed="false">SVG</button>
-                <button type="button" data-value="same" aria-pressed="false" id="format-same">Same</button>
+                <button type="button" data-value="png" aria-pressed="true" title="PNG: Lossless with transparency">PNG</button>
+                <button type="button" data-value="jpeg" aria-pressed="false" title="JPEG: Compressed photo (opaque background)">JPEG</button>
+                <button type="button" data-value="webp" aria-pressed="false" title="WebP: Modern web format with transparency">WebP</button>
+                <button type="button" data-value="svg" aria-pressed="false" title="SVG: Scalable vector contour">SVG</button>
+                <button type="button" data-value="same" aria-pressed="false" id="format-same" title="Same format as original image">Same</button>
               </div>
             </div>
             <div class="card-inline-row mt-4">

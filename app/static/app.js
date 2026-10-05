@@ -308,7 +308,13 @@ $("frame").addEventListener("dblclick", () => {
 $("split").addEventListener("input", () => setSplit($("split").value));
 $("list").addEventListener("click", onListClick);
 $("fit").addEventListener("change", () => {
+  const prevFit = ui.fit;
   ui.fit = $("fit").value;
+  if (ui.fit === "percent" && prevFit !== "percent") {
+    if (ui.fitA > 800 || ui.fitA === 2048) ui.fitA = 50;
+  } else if (ui.fit !== "percent" && prevFit === "percent") {
+    if (ui.fitA <= 100) ui.fitA = 2048;
+  }
   render(snapshot);
 });
 
@@ -612,6 +618,17 @@ function render(data) {
 
   $("fit-legend").textContent = ui.task === "resize" ? "Size" : "Finished size";
   $("fit-a-label").textContent = { long: "Long edge", width: "Width", height: "Height", box: "Width", percent: "Percent" }[ui.fit] || "Size";
+
+  const isPercent = ui.fit === "percent";
+  const fitUnit = $("fit-unit");
+  if (fitUnit) fitUnit.textContent = isPercent ? "%" : "px";
+  const fitAInput = $("fit-a");
+  if (fitAInput) {
+    fitAInput.placeholder = isPercent ? "50" : "2048";
+    fitAInput.max = isPercent ? "800" : "20000";
+    fitAInput.setAttribute("aria-label", isPercent ? "Scale percentage" : "Size in pixels");
+  }
+
   const names = $("name-more");
   if (names) {
     names.classList.toggle("primary", ui.task === "rename");
