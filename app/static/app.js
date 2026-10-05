@@ -706,7 +706,6 @@ function render(data) {
   show("color-row", ui.background === "custom");
   show("number-fields", ui.number);
 
-  const enlarges = ui.task === "upscale" || ui.task === "both";
   const same = document.querySelector('#format button[data-value="same"]');
   if (same) same.hidden = ui.task !== "resize";
   const none = $("fit").querySelector('option[value="none"]');
