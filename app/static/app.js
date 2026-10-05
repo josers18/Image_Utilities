@@ -25,6 +25,9 @@ const ui = {
   number: false,
   numberStart: 1,
   digits: 2,
+  aspectRatio: "auto",
+  sharpen: 0,
+  keepExif: true,
   subfolders: false,
   viewId: null,
   pinned: false,
@@ -202,6 +205,9 @@ const SETTINGS_MAP = {
   number: "number",
   number_start: "numberStart",
   digits: "digits",
+  aspect_ratio: "aspectRatio",
+  sharpen: "sharpen",
+  keep_exif: "keepExif",
 };
 
 let settingsReady = false;
@@ -399,6 +405,7 @@ bindCheck("also-webp", "alsoWebp");
 bindCheck("srgb", "srgb");
 bindCheck("no-upscale", "noUpscale");
 bindCheck("number", "number");
+bindCheck("keep-exif", "keepExif");
 bindNumber("fit-a", "fitA");
 bindNumber("fit-b", "fitB");
 bindNumber("padding", "padding");
@@ -411,6 +418,28 @@ bindText("find", "find");
 bindText("replace", "replace");
 $("background-hex").addEventListener("input", () => {
   ui.backgroundHex = $("background-hex").value;
+});
+$("aspect-ratio").addEventListener("change", () => {
+  ui.aspectRatio = $("aspect-ratio").value;
+  render(snapshot);
+});
+$("sharpen").addEventListener("input", () => {
+  ui.sharpen = Number($("sharpen").value) || 0;
+  const val = $("sharpen-val");
+  if (val) val.textContent = `${ui.sharpen}%`;
+  render(snapshot);
+});
+$("btn-undo").addEventListener("click", async () => {
+  try {
+    const data = await postJSON("/api/items/undo");
+    apply(data);
+    toast("Restored queue items");
+  } catch (err) {
+    toast(err.message);
+  }
+});
+$("btn-download-zip").addEventListener("click", () => {
+  window.location.href = "/api/batch/zip";
 });
 
 $("choose-files").addEventListener("click", () => pick("/api/pick/files"));
@@ -512,7 +541,11 @@ document.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
     onRun();
   }
-  if (event.code === "Space" && ui.compareMode === "hold" && !isInputActive()) {
+  if ((event.metaKey || event.ctrlKey) && (event.key === "z" || event.key === "Z") && !isInputActive()) {
+    event.preventDefault();
+    $("btn-undo").click();
+  }
+  if (event.code === "Space" && !isInputActive()) {
     event.preventDefault();
     $("frame").classList.add("peeking");
   }
@@ -700,6 +733,8 @@ function render(data) {
   show("fit-fields", ui.fit !== "none");
   show("fit-b-wrap", ui.fit === "box");
   show("no-upscale-row", ui.fit !== "none");
+  show("sharpen-row", ui.task !== "convert" && ui.task !== "rename");
+  show("aspect-ratio-row", ui.task !== "convert" && ui.task !== "rename");
   show("padding-row", ui.trim);
   show("quality-row", ui.format === "jpeg" || ui.format === "webp");
   show("webp-row", ui.format !== "webp");
@@ -751,6 +786,12 @@ function render(data) {
   syncField("srgb", ui.srgb);
   syncField("no-upscale", ui.noUpscale);
   syncField("number", ui.number);
+  syncField("keep-exif", ui.keepExif);
+  syncField("sharpen", ui.sharpen);
+  const sharpenVal = $("sharpen-val");
+  if (sharpenVal) sharpenVal.textContent = `${ui.sharpen}%`;
+  const arNode = $("aspect-ratio");
+  if (arNode && document.activeElement !== arNode) arNode.value = ui.aspectRatio;
 
   $("fit-legend").textContent = enlarges ? "Output size:" : ui.task === "resize" ? "Resize to:" : "Size:";
   $("fit-a-label").textContent = { long: "Long edge", width: "Width", height: "Height", box: "Width", percent: "Percent" }[ui.fit] || "Size";
@@ -791,6 +832,12 @@ function render(data) {
   $("choose-folder").disabled = ui.picking || running;
   $("change-dir").disabled = ui.picking || running;
   $("subfolders").disabled = running;
+
+  const doneCount = batch ? batch.items.filter((i) => i.status === "done").length : 0;
+  const zipBtn = $("btn-download-zip");
+  if (zipBtn) zipBtn.hidden = doneCount === 0 || running;
+  const undoBtn = $("btn-undo");
+  if (undoBtn) undoBtn.hidden = running;
 
   const run = $("run");
   run.disabled = ui.picking || !count;
@@ -1185,6 +1232,9 @@ function runBody() {
     number: Boolean(ui.number),
     number_start: Number(ui.numberStart) || 0,
     digits: Number(ui.digits) || 2,
+    aspect_ratio: ui.aspectRatio || "auto",
+    sharpen: Number(ui.sharpen) || 0,
+    keep_exif: Boolean(ui.keepExif),
   };
 }
 

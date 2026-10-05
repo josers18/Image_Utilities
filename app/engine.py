@@ -110,8 +110,21 @@ def load_image(path: Path) -> tuple[Image.Image, dict]:
     if getattr(image, "is_animated", False) or frames > 1:
         image.seek(0)
         note = "Used the first frame."
+    exif = image.info.get("exif")
+    if exif is None and hasattr(image, "getexif"):
+        try:
+            raw_exif = image.getexif()
+            if raw_exif:
+                exif = raw_exif.tobytes()
+        except Exception:
+            exif = None
     image = ImageOps.exif_transpose(image)
-    meta = {"icc": image.info.get("icc_profile"), "dpi": _dpi(image.info.get("dpi")), "note": note}
+    meta = {
+        "icc": image.info.get("icc_profile"),
+        "dpi": _dpi(image.info.get("dpi")),
+        "exif": exif,
+        "note": note,
+    }
     if image.mode == "P":
         image = image.convert("RGBA" if "transparency" in image.info else "RGB")
     elif image.mode == "LA":

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import gc
 import json
 import logging
 import shutil
@@ -12,6 +13,7 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import torch
 from PIL import UnidentifiedImageError
 from fastapi import HTTPException
 
@@ -111,6 +113,7 @@ class Store:
         self.batch: Batch | None = None
         self.cancel = threading.Event()
         self.thread: threading.Thread | None = None
+        self._undo_stack: list[list[Item]] = []
         self._subscribers: set[tuple[asyncio.Queue, asyncio.AbstractEventLoop]] = set()
         self._last_notify = 0.0
 
@@ -236,17 +239,10 @@ class Store:
             removed = [item for item in self.batch.items if item.id in id_set]
             if not removed:
                 return self.snapshot()
+            self._undo_stack = [list(removed)]
             self.batch.items = [item for item in self.batch.items if item.id not in id_set]
-            upload_paths = [item.source for item in removed if item.origin == "upload"]
             if not self.batch.items:
-                batch_id = self.batch.id
                 self.batch = None
-            else:
-                batch_id = None
-        for path in upload_paths:
-            path.unlink(missing_ok=True)
-        if batch_id:
-            _discard_files(batch_id)
         self.notify()
         return self.snapshot()
 
@@ -256,15 +252,31 @@ class Store:
                 raise HTTPException(status_code=409, detail="Wait for the current batch to finish.")
             if self.batch is None:
                 return self.snapshot()
-            batch_id = self.batch.id
-            upload_paths = [item.source for item in self.batch.items if item.origin == "upload"]
+            self._undo_stack = [list(self.batch.items)]
             self.batch = None
-        for path in upload_paths:
-            path.unlink(missing_ok=True)
-        if batch_id:
-            _discard_files(batch_id)
         self.notify()
         return self.snapshot()
+
+    def undo_remove(self) -> dict:
+        with self.lock:
+            if self.thread and self.thread.is_alive():
+                raise HTTPException(status_code=409, detail="Wait for the current batch to finish.")
+            if not self._undo_stack:
+                raise HTTPException(status_code=400, detail="Nothing to restore.")
+            restored = self._undo_stack.pop()
+            if self.batch is None:
+                self.batch = Batch(id=uuid.uuid4().hex[:12], origin="mixed", items=restored)
+            else:
+                existing_ids = {item.id for item in self.batch.items}
+                for item in restored:
+                    if item.id not in existing_ids:
+                        self.batch.items.append(item)
+        self.notify(f"Restored {len(restored)} items.")
+        return self.snapshot()
+
+    def batch_items(self) -> list[Item]:
+        with self.lock:
+            return list(self.batch.items) if self.batch else []
 
     def set_output_dir(self, path: Path) -> dict:
         if not path.is_dir():
@@ -458,6 +470,10 @@ class Store:
                         message=friendly_error(exc),
                         seconds=time.perf_counter() - started,
                     )
+                finally:
+                    if torch.backends.mps.is_available():
+                        torch.mps.empty_cache()
+                    gc.collect()
         finally:
             with self.lock:
                 if self.batch is not None and self.batch.id == batch_id and self.batch.status == "running":

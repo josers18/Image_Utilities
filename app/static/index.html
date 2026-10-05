@@ -195,8 +195,20 @@
         <!-- Filmstrip / Queue List -->
         <div class="queue-container" id="queue-container">
           <div class="queue-bar-header">
-            <span class="queue-title">Batch Queue</span>
-            <span class="queue-counter" id="queue-count-tag"></span>
+            <div class="flex-row items-center gap-2">
+              <span class="queue-title">Batch Queue</span>
+              <span class="queue-counter" id="queue-count-tag"></span>
+            </div>
+            <div class="queue-header-actions">
+              <button type="button" class="btn-ghost-sm" id="btn-undo" title="Restore recently deleted items" hidden>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                <span>Undo</span>
+              </button>
+              <button type="button" class="btn-ghost-sm" id="btn-download-zip" title="Download completed images as ZIP archive" hidden>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Export ZIP</span>
+              </button>
+            </div>
           </div>
           <ol class="list" id="list"></ol>
         </div>
@@ -302,6 +314,13 @@
                 <span class="unit-badge" id="fit-unit">px</span>
               </div>
             </div>
+            <div class="card-inline-row mt-4" id="sharpen-row">
+              <div class="inline-field flex-grow">
+                <span>Sharpen:</span>
+                <input id="sharpen" type="range" min="0" max="100" value="0" aria-label="Sharpening strength">
+                <span class="unit-badge" id="sharpen-val">0%</span>
+              </div>
+            </div>
             <label class="check-toggle" id="no-upscale-row">
               <input type="checkbox" id="no-upscale">
               <span>Don't upscale past original size</span>
@@ -338,6 +357,20 @@
                 <input type="checkbox" id="shadow">
                 <span>Shadow</span>
               </label>
+            </div>
+            <div class="card-inline-row mt-4" id="aspect-ratio-row">
+              <div class="inline-field flex-grow">
+                <span>Aspect:</span>
+                <select id="aspect-ratio" aria-label="Pad to aspect ratio">
+                  <option value="auto">Auto (Original)</option>
+                  <option value="1:1">1:1 Square (E-Commerce)</option>
+                  <option value="4:5">4:5 Portrait (Instagram)</option>
+                  <option value="9:16">9:16 Story / Reel</option>
+                  <option value="16:9">16:9 Landscape</option>
+                  <option value="4:3">4:3 Standard</option>
+                  <option value="3:2">3:2 DSLR</option>
+                </select>
+              </div>
             </div>
             <div class="card-inline-row mt-4">
               <div class="inline-field flex-grow">
@@ -380,6 +413,10 @@
               <label class="check-toggle">
                 <input type="checkbox" id="srgb">
                 <span>sRGB</span>
+              </label>
+              <label class="check-toggle" id="keep-exif-row" title="Preserve camera EXIF metadata">
+                <input type="checkbox" id="keep-exif" checked>
+                <span>EXIF</span>
               </label>
             </div>
             <p class="hint" id="file-hint" hidden></p>

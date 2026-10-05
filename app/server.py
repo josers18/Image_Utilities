@@ -61,6 +61,9 @@ class RunBody(BaseModel):
     number: bool = False
     number_start: int = 1
     digits: int = 2
+    aspect_ratio: str = "auto"
+    sharpen: int = 0
+    keep_exif: bool = True
 
 
 class OpenBody(BaseModel):
@@ -170,9 +173,41 @@ def create_app() -> FastAPI:
     def clear_items():
         return store.clear_batch()
 
+    @app.post("/api/items/undo")
+    def undo_items():
+        return store.undo_remove()
+
     @app.post("/api/items/remove-batch")
     def remove_batch(body: BatchRemoveBody):
         return store.remove_items(body.ids)
+
+    @app.get("/api/batch/zip")
+    def download_zip():
+        items = store.batch_items()
+        done_items = [it for it in items if it.status == "done" and it.output and it.output.is_file()]
+        if not done_items:
+            raise HTTPException(status_code=400, detail="No completed images available to download.")
+
+        import io
+        import zipfile
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            used_names = set()
+            for it in done_items:
+                arcname = it.output.name
+                count = 1
+                while arcname in used_names:
+                    arcname = f"{it.output.stem}_{count}{it.output.suffix}"
+                    count += 1
+                used_names.add(arcname)
+                zf.write(it.output, arcname=arcname)
+        buffer.seek(0)
+        return StreamingResponse(
+            buffer,
+            media_type="application/zip",
+            headers={"Content-Disposition": 'attachment; filename="batch_export.zip"'},
+        )
 
     @app.post("/api/output-dir")
     def output_dir():

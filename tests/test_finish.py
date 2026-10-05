@@ -258,5 +258,42 @@ class FitImageTests(unittest.TestCase):
         self.assertEqual(note, "")
 
 
+class AspectAndEnhanceTests(unittest.TestCase):
+    def test_pad_to_aspect_ratio_square(self):
+        from app.finish import pad_to_aspect_ratio
+
+        wide = Image.new("RGBA", (200, 100), (255, 0, 0, 255))
+        padded = pad_to_aspect_ratio(wide, "1:1", Options())
+        self.assertEqual(padded.size, (200, 200))
+
+        tall = Image.new("RGBA", (100, 200), (255, 0, 0, 255))
+        padded_tall = pad_to_aspect_ratio(tall, "1:1", Options())
+        self.assertEqual(padded_tall.size, (200, 200))
+
+    def test_apply_sharpen(self):
+        from app.finish import apply_sharpen
+
+        image = Image.new("RGB", (64, 64), (100, 150, 200))
+        sharpened = apply_sharpen(image, 50)
+        self.assertEqual(sharpened.size, (64, 64))
+
+    def test_store_undo_remove(self):
+        with tempfile.TemporaryDirectory() as folder:
+            pictures = Path(folder)
+            a = pictures / "a.png"
+            b = pictures / "b.png"
+            a.write_bytes(b"x")
+            b.write_bytes(b"x")
+            store = Store()
+            store.add_paths([a, b], subfolders=False)
+            self.assertEqual(len(store.batch.items), 2)
+            first_id = store.batch.items[0].id
+            store.remove_items([first_id])
+            self.assertEqual(len(store.batch.items), 1)
+            store.undo_remove()
+            self.assertEqual(len(store.batch.items), 2)
+
+
 if __name__ == "__main__":
     unittest.main()
+

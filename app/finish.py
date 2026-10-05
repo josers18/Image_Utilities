@@ -19,6 +19,7 @@ from app.naming import output_name, unique_path
 PAPER = (244, 241, 234)
 TASKS = {"cutout", "upscale", "both", "resize", "convert", "rename"}
 FITS = {"none", "long", "width", "height", "box", "percent"}
+ASPECT_RATIOS = {"auto", "1:1", "4:5", "9:16", "16:9", "4:3", "3:2"}
 EDGES = {"tight", "normal", "loose"}
 BACKGROUNDS = {"transparent", "white", "paper", "custom"}
 FORMATS = {"png", "jpeg", "webp", "svg", "same"}
@@ -28,10 +29,11 @@ INT_FIELDS = {
     "fit_b",
     "padding",
     "quality",
+    "sharpen",
     "number_start",
     "digits",
 }
-BOOL_FIELDS = {"no_upscale", "fill_holes", "trim", "shadow", "also_webp", "srgb", "number"}
+BOOL_FIELDS = {"no_upscale", "fill_holes", "trim", "shadow", "also_webp", "srgb", "number", "keep_exif"}
 
 
 class TooLarge(Exception):
@@ -66,6 +68,9 @@ class Options:
     number: bool = False
     number_start: int = 1
     digits: int = 2
+    aspect_ratio: str = "auto"
+    sharpen: int = 0
+    keep_exif: bool = True
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -109,10 +114,13 @@ def normalize(options: Options) -> Options:
         options.background = "transparent"
     if options.format not in FORMATS:
         options.format = "png"
+    if options.aspect_ratio not in ASPECT_RATIOS:
+        options.aspect_ratio = "auto"
     options.fit_a = _clamp(options.fit_a, 0, MAX_EDGE)
     options.fit_b = _clamp(options.fit_b, 0, MAX_EDGE)
     options.padding = _clamp(options.padding, 0, 512)
     options.quality = _clamp(options.quality, 1, 100)
+    options.sharpen = _clamp(options.sharpen, 0, 100)
     options.number_start = _clamp(options.number_start, 0, 9999)
     options.digits = _clamp(options.digits, 1, 4)
     options.background_hex = _hex(options.background_hex)
@@ -222,6 +230,57 @@ def target_size(
     return new_w, new_h, ""
 
 
+def pad_to_aspect_ratio(image: Image.Image, ratio_str: str, options: Options) -> Image.Image:
+    if ratio_str == "auto":
+        return image
+    parts = ratio_str.split(":")
+    if len(parts) != 2:
+        return image
+    try:
+        rw, rh = float(parts[0]), float(parts[1])
+        if rw <= 0 or rh <= 0:
+            return image
+        target_ratio = rw / rh
+    except ValueError:
+        return image
+
+    curr_ratio = image.width / image.height
+    if abs(curr_ratio - target_ratio) < 1e-4:
+        return image
+
+    if curr_ratio > target_ratio:
+        new_width = image.width
+        new_height = max(1, round(image.width / target_ratio))
+    else:
+        new_height = image.height
+        new_width = max(1, round(image.height * target_ratio))
+
+    bg = _background(options)
+    if bg is None or image.mode == "RGBA":
+        if bg is None:
+            canvas = Image.new("RGBA", (new_width, new_height), (0, 0, 0, 0))
+        else:
+            canvas = Image.new("RGBA", (new_width, new_height), (*bg, 255))
+        offset_x = (new_width - image.width) // 2
+        offset_y = (new_height - image.height) // 2
+        canvas.paste(image, (offset_x, offset_y), mask=image if image.mode == "RGBA" else None)
+        return canvas
+    else:
+        canvas = Image.new("RGB", (new_width, new_height), bg)
+        offset_x = (new_width - image.width) // 2
+        offset_y = (new_height - image.height) // 2
+        canvas.paste(image, (offset_x, offset_y))
+        return canvas
+
+
+def apply_sharpen(image: Image.Image, amount: int) -> Image.Image:
+    if amount <= 0:
+        return image
+    radius = max(0.8, min(2.5, amount * 0.025))
+    percent = int(amount * 1.5)
+    return image.filter(ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=3))
+
+
 def finish_image(image: Image.Image, meta: dict, options: Options) -> tuple[Image.Image, dict, list[str]]:
     notes: list[str] = []
     meta = dict(meta)
@@ -235,10 +294,15 @@ def finish_image(image: Image.Image, meta: dict, options: Options) -> tuple[Imag
         if options.shadow:
             image = add_shadow(image)
         image = apply_background(image, options, notes)
+    if options.aspect_ratio != "auto" and options.task not in ("rename", "convert"):
+        image = pad_to_aspect_ratio(image, options.aspect_ratio, options)
+        notes.append(f"Padded canvas to {options.aspect_ratio} aspect ratio.")
     if options.fit != "none" and options.task not in ("rename", "convert"):
         image, note = fit_image(image, options)
         if note:
             notes.append(note)
+    if options.sharpen > 0 and options.task not in ("rename", "convert"):
+        image = apply_sharpen(image, options.sharpen)
     if options.srgb:
         image, meta, note = to_srgb(image, meta)
         if note:
@@ -388,12 +452,15 @@ def _write_raster(image: Image.Image, dest: Path, meta: dict, options: Options) 
         kwargs["icc_profile"] = meta["icc"]
     if meta.get("dpi") and suffix != ".webp":
         kwargs["dpi"] = meta["dpi"]
+    if options.keep_exif and meta.get("exif") and suffix in (".jpg", ".jpeg", ".webp", ".png"):
+        kwargs["exif"] = meta["exif"]
     try:
         try:
             save.save(tmp, **kwargs)
         except (OSError, ValueError):
             kwargs.pop("dpi", None)
             kwargs.pop("icc_profile", None)
+            kwargs.pop("exif", None)
             save.save(tmp, **kwargs)
         tmp.replace(dest)
     except Exception:

@@ -890,6 +890,19 @@ html:not([data-theme="light"]) .sun-icon { display: block; }
   opacity: 0 !important;
 }
 
+.frame.peeking .handle,
+.frame.peeking input[type="range"] {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.queue-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
 .frame.mode-peek .handle,
 .frame.mode-peek input[type="range"] {
   display: none;

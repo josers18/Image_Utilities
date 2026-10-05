@@ -37,8 +37,12 @@ An Apple-grade, high-performance desktop image utility for macOS. Powered by on-
 ### 🛠️ Matte, Canvas, and Output Customization
 - **Edge Refinement**: Adjust between Tighter, Normal, or Feathered matte, with automatic interior hole filling.
 - **Canvas & Framing**: Trim bounding box to subject with customizable padding, drop-shadow generation, and custom background colors.
-- **Export Formats**: PNG, JPEG, WebP, SVG (vector contour tracing), and Original.
+- **Pad to Aspect Ratio**: Standardize product and social shots directly to 1:1 Square, 4:5 Portrait, 9:16 Story, 16:9 Landscape, 4:3, or 3:2.
+- **Sharpening Filter**: Built-in Unsharp Mask slider (0–100%) for crisp, professional clarity.
+- **Export Formats & ZIP**: PNG, JPEG, WebP, SVG (vector contour tracing), and Original—plus 1-click **Export Entire Batch as `.zip`**.
+- **EXIF Retention**: Toggle camera metadata (date, lens, camera model, orientation) preservation or strip for privacy.
 - **Batch Renaming**: Prefix, Suffix, Find & Replace, and sequential zero-padded number counters.
+- **Memory Optimized**: Automatic Metal Performance Shaders (MPS) cache eviction and garbage collection after every item to prevent VRAM memory accumulation on long runs.
 
 ---
 
@@ -77,7 +81,8 @@ Command-line flags:
 | Shortcut | Action |
 | :--- | :--- |
 | <kbd>Cmd</kbd> + <kbd>Enter</kbd> | Run Batch / Cancel active batch |
-| <kbd>Space</kbd> (hold) | Peek Original image (in Peek mode) |
+| <kbd>Space</kbd> (hold) | Instant A/B flip comparison with original image |
+| <kbd>Cmd</kbd> + <kbd>Z</kbd> | Undo deleted queue items or clear |
 | <kbd>Cmd</kbd> / <kbd>Ctrl</kbd> + Click | Select / Deselect multiple queue items |
 | <kbd>Shift</kbd> + Click | Select range of queue items |
 | <kbd>Esc</kbd> | Deselect all multi-selected items |
