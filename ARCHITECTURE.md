@@ -134,15 +134,30 @@ flowchart TD
     PadCanvas --> Fit[Fit & Resize: Lanczos Resample]
     Fit --> Sharpen{Sharpen > 0?}
     Sharpen -- Yes --> Unsharp[Apply Unsharp Mask Filter]
-    Sharpen -- No --> Color
-    Unsharp --> Color[Color Space: Optional sRGB ICC Conversion]
+    Sharpen -- No --> Tone
+    Unsharp --> Tone{Tone Adjustments?}
+    Tone -- Yes --> Adj[Brightness / Contrast / Saturation / Auto-Contrast]
+    Tone -- No --> Watermark
+    Adj --> Watermark{Watermark Text?}
+    Watermark -- Yes --> Stamp[Stamp Text Overlay with Position & Opacity]
+    Watermark -- No --> Color
+    Stamp --> Color[Color Space: Optional sRGB ICC Conversion]
     Color --> Encode[Encode Format: PNG / JPEG / WebP / SVG + EXIF]
     Encode --> Disk[(Save to Disk)]
 ```
 
 ---
 
-## 5. Frontend UI/UX Architecture
+## 5. Standalone Headless CLI & Automation (`app/cli.py` & `scripts/`)
+
+In addition to the Web/AppKit frontend, Image Utilities provides headless execution interfaces:
+- **CLI (`app/cli.py`)**: Directly leverages the shared `Engine`, `Store`, and `finish_image` pipelines without spinning up the Uvicorn web server. Supports batch folder walks, all neural models, and tone/watermark/finishing options with terminal progress bars.
+- **Finder Quick Actions (`scripts/install_quick_actions.sh`)**: Integrates into the macOS Services menu (`~/Library/Services/`) via AppleScript and Automator wrappers invoking the CLI.
+- **DMG Distribution (`scripts/build_dmg.sh`)**: Builds a standalone drag-and-drop disk image installer using macOS `hdiutil`.
+
+---
+
+## 6. Frontend UI/UX Architecture
 
 The user interface is built on modern Web standards with zero external JS/CSS dependencies:
 - **Design Tokens**: Defined in CSS variables (`--bg-app`, `--bg-panel`, `--accent`, `--border-subtle`) supporting macOS Dark & Light modes with instant runtime toggle.
