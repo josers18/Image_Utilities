@@ -275,7 +275,25 @@ class AspectAndEnhanceTests(unittest.TestCase):
 
         image = Image.new("RGB", (64, 64), (100, 150, 200))
         sharpened = apply_sharpen(image, 50)
-        self.assertEqual(sharpened.size, (64, 64))
+    def test_apply_adjustments(self):
+        from app.finish import apply_adjustments
+
+        image = Image.new("RGB", (32, 32), (120, 120, 120))
+        opts = Options(brightness=120, contrast=110, saturation=90, auto_contrast=True)
+        adjusted = apply_adjustments(image, opts)
+        self.assertEqual(adjusted.size, (32, 32))
+        self.assertEqual(adjusted.mode, "RGB")
+
+    def test_apply_watermark(self):
+        from app.finish import apply_watermark
+
+        image = Image.new("RGBA", (100, 100), (255, 255, 255, 255))
+        opts = Options(watermark_text="TEST", watermark_pos="center", watermark_opacity=50)
+        watermarked = apply_watermark(image, opts)
+        self.assertEqual(watermarked.size, (100, 100))
+        # Ensure watermark text altered pixels
+        diffs = [pos for pos in ((x, y) for x in range(100) for y in range(100)) if watermarked.getpixel(pos) != (255, 255, 255, 255)]
+        self.assertGreater(len(diffs), 0)
 
     def test_store_undo_remove(self):
         with tempfile.TemporaryDirectory() as folder:

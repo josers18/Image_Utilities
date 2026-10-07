@@ -11,7 +11,7 @@ from io import BytesIO
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageCms, ImageFilter
+from PIL import Image, ImageCms, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 from app.config import MAX_EDGE, MAX_PIXELS
 from app.naming import output_name, unique_path
@@ -20,6 +20,7 @@ PAPER = (244, 241, 234)
 TASKS = {"cutout", "upscale", "both", "resize", "convert", "rename"}
 FITS = {"none", "long", "width", "height", "box", "percent"}
 ASPECT_RATIOS = {"auto", "1:1", "4:5", "9:16", "16:9", "4:3", "3:2"}
+WATERMARK_POSITIONS = {"bottom-right", "bottom-left", "top-right", "top-left", "center"}
 EDGES = {"tight", "normal", "loose"}
 BACKGROUNDS = {"transparent", "white", "paper", "custom"}
 FORMATS = {"png", "jpeg", "webp", "svg", "same"}
@@ -30,10 +31,15 @@ INT_FIELDS = {
     "padding",
     "quality",
     "sharpen",
+    "brightness",
+    "contrast",
+    "saturation",
+    "watermark_opacity",
+    "watermark_size",
     "number_start",
     "digits",
 }
-BOOL_FIELDS = {"no_upscale", "fill_holes", "trim", "shadow", "also_webp", "srgb", "number", "keep_exif"}
+BOOL_FIELDS = {"no_upscale", "fill_holes", "trim", "shadow", "also_webp", "srgb", "number", "keep_exif", "auto_contrast"}
 
 
 class TooLarge(Exception):
@@ -71,6 +77,14 @@ class Options:
     aspect_ratio: str = "auto"
     sharpen: int = 0
     keep_exif: bool = True
+    brightness: int = 100
+    contrast: int = 100
+    saturation: int = 100
+    auto_contrast: bool = False
+    watermark_text: str = ""
+    watermark_pos: str = "bottom-right"
+    watermark_opacity: int = 50
+    watermark_size: int = 24
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -121,6 +135,14 @@ def normalize(options: Options) -> Options:
     options.padding = _clamp(options.padding, 0, 512)
     options.quality = _clamp(options.quality, 1, 100)
     options.sharpen = _clamp(options.sharpen, 0, 100)
+    options.brightness = _clamp(options.brightness, 50, 150)
+    options.contrast = _clamp(options.contrast, 50, 150)
+    options.saturation = _clamp(options.saturation, 0, 200)
+    options.watermark_opacity = _clamp(options.watermark_opacity, 10, 100)
+    options.watermark_size = _clamp(options.watermark_size, 10, 200)
+    if options.watermark_pos not in WATERMARK_POSITIONS:
+        options.watermark_pos = "bottom-right"
+    options.watermark_text = str(options.watermark_text or "").strip()[:100]
     options.number_start = _clamp(options.number_start, 0, 9999)
     options.digits = _clamp(options.digits, 1, 4)
     options.background_hex = _hex(options.background_hex)
@@ -281,6 +303,74 @@ def apply_sharpen(image: Image.Image, amount: int) -> Image.Image:
     return image.filter(ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=3))
 
 
+def apply_adjustments(image: Image.Image, options: Options) -> Image.Image:
+    has_alpha = "A" in image.getbands()
+    alpha = image.getchannel("A") if has_alpha else None
+
+    working = image.convert("RGB")
+    if options.auto_contrast:
+        working = ImageOps.autocontrast(working, cutoff=0.5)
+    if options.brightness != 100:
+        working = ImageEnhance.Brightness(working).enhance(options.brightness / 100.0)
+    if options.contrast != 100:
+        working = ImageEnhance.Contrast(working).enhance(options.contrast / 100.0)
+    if options.saturation != 100:
+        working = ImageEnhance.Color(working).enhance(options.saturation / 100.0)
+
+    if has_alpha and alpha is not None:
+        working = working.convert("RGBA")
+        working.putalpha(alpha)
+    elif image.mode == "RGBA":
+        working = working.convert("RGBA")
+    return working
+
+
+def apply_watermark(image: Image.Image, options: Options) -> Image.Image:
+    text = options.watermark_text.strip()
+    if not text:
+        return image
+
+    working = image.convert("RGBA")
+    overlay = Image.new("RGBA", working.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+
+    font_size = max(10, min(options.watermark_size, min(working.size) // 5))
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", size=font_size)
+    except Exception:
+        try:
+            font = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", size=font_size)
+        except Exception:
+            font = ImageFont.load_default()
+
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+    margin = max(16, font_size)
+
+    pos = options.watermark_pos
+    if pos == "top-left":
+        x, y = margin, margin
+    elif pos == "top-right":
+        x, y = working.width - text_w - margin, margin
+    elif pos == "bottom-left":
+        x, y = margin, working.height - text_h - margin
+    elif pos == "center":
+        x, y = (working.width - text_w) // 2, (working.height - text_h) // 2
+    else:  # bottom-right
+        x, y = working.width - text_w - margin, working.height - text_h - margin
+
+    x = max(0, min(x, working.width - text_w))
+    y = max(0, min(y, working.height - text_h))
+
+    alpha_shadow = int(options.watermark_opacity * 2.55 * 0.6)
+    draw.text((x + 1, y + 1), text, fill=(0, 0, 0, alpha_shadow), font=font)
+    alpha_fg = int(options.watermark_opacity * 2.55)
+    draw.text((x, y), text, fill=(255, 255, 255, alpha_fg), font=font)
+
+    return Image.alpha_composite(working, overlay)
+
+
 def finish_image(image: Image.Image, meta: dict, options: Options) -> tuple[Image.Image, dict, list[str]]:
     notes: list[str] = []
     meta = dict(meta)
@@ -303,6 +393,17 @@ def finish_image(image: Image.Image, meta: dict, options: Options) -> tuple[Imag
             notes.append(note)
     if options.sharpen > 0 and options.task not in ("rename", "convert"):
         image = apply_sharpen(image, options.sharpen)
+    if (
+        options.auto_contrast
+        or options.brightness != 100
+        or options.contrast != 100
+        or options.saturation != 100
+    ) and options.task not in ("rename", "convert"):
+        image = apply_adjustments(image, options)
+        notes.append("Applied tone & color adjustments.")
+    if options.watermark_text.strip() and options.task not in ("rename", "convert"):
+        image = apply_watermark(image, options)
+        notes.append("Stamped watermark.")
     if options.srgb:
         image, meta, note = to_srgb(image, meta)
         if note:

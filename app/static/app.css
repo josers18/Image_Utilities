@@ -205,6 +205,13 @@ button {
   display: none;
 }
 
+.presets-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
 .header-tools {
   display: flex;
   align-items: center;

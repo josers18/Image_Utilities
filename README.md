@@ -74,6 +74,32 @@ Command-line flags:
 .venv/bin/python -m app --port 8765 --no-browser
 ```
 
+### 3. Headless CLI Automation
+Image Utilities includes a standalone headless CLI for scripting and terminal workflows without launching a web server:
+```bash
+# Remove background
+.venv/bin/python -m app.cli --task cutout image.png -o ./output
+
+# 4× AI upscale with contrast and sharpening
+.venv/bin/python -m app.cli --task upscale --scale 4 --sharpen 25 --auto-contrast input.jpg
+
+# Batch resize, apply text watermark, and convert to WebP
+.venv/bin/python -m app.cli --task resize --fit width --fit-a 1920 --watermark "© 2026 Studio" --watermark-pos bottom-right --format webp ./photos/
+```
+
+### 4. macOS Finder Quick Actions
+Install one-click Finder Quick Actions ("Remove Background with Image Utilities" and "Upscale 4x with Image Utilities"):
+```bash
+./scripts/install_quick_actions.sh
+```
+Right-click any image in Finder → Quick Actions → Remove Background / Upscale 4x!
+
+### 5. Packaging `.dmg` Installer
+Build a distributable, drag-to-Applications `.dmg` installer:
+```bash
+./scripts/build_dmg.sh
+```
+
 ---
 
 ## ⌨️ Keyboard Shortcuts

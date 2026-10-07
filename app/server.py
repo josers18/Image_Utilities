@@ -64,6 +64,14 @@ class RunBody(BaseModel):
     aspect_ratio: str = "auto"
     sharpen: int = 0
     keep_exif: bool = True
+    brightness: int = 100
+    contrast: int = 100
+    saturation: int = 100
+    auto_contrast: bool = False
+    watermark_text: str = ""
+    watermark_pos: str = "bottom-right"
+    watermark_opacity: int = 50
+    watermark_size: int = 24
 
 
 class OpenBody(BaseModel):

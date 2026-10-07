@@ -29,6 +29,11 @@
       <div class="header-presets" id="presets-container">
         <span class="presets-header-label">Presets:</span>
         <div class="presets-row" id="presets"></div>
+        <div class="presets-tools">
+          <button type="button" class="btn-ghost-sm" id="btn-export-presets" title="Export custom presets to JSON">Export</button>
+          <button type="button" class="btn-ghost-sm" id="btn-import-presets" title="Import presets from JSON">Import</button>
+          <input type="file" id="import-presets-file" accept=".json" hidden>
+        </div>
       </div>
 
       <div class="header-tools">
@@ -421,6 +426,70 @@
             </div>
             <p class="hint" id="file-hint" hidden></p>
           </fieldset>
+
+          <!-- Tone & Color Adjustments -->
+          <details class="control-card" id="panel-tone">
+            <summary id="tone-legend">Tone & Adjustments</summary>
+            <div class="mt-4">
+              <label class="check-toggle">
+                <input type="checkbox" id="auto-contrast">
+                <span>Auto Contrast / Levels</span>
+              </label>
+              <div class="card-inline-row mt-4">
+                <div class="inline-field flex-grow">
+                  <span>Brightness:</span>
+                  <input id="brightness" type="range" min="50" max="150" value="100" aria-label="Brightness">
+                  <span class="unit-badge" id="brightness-val">100%</span>
+                </div>
+              </div>
+              <div class="card-inline-row mt-4">
+                <div class="inline-field flex-grow">
+                  <span>Contrast:</span>
+                  <input id="contrast" type="range" min="50" max="150" value="100" aria-label="Contrast">
+                  <span class="unit-badge" id="contrast-val">100%</span>
+                </div>
+              </div>
+              <div class="card-inline-row mt-4">
+                <div class="inline-field flex-grow">
+                  <span>Saturation:</span>
+                  <input id="saturation" type="range" min="0" max="200" value="100" aria-label="Saturation">
+                  <span class="unit-badge" id="saturation-val">100%</span>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Watermark & Branding -->
+          <details class="control-card" id="panel-watermark">
+            <summary id="watermark-legend">Watermark & Branding</summary>
+            <div class="mt-4">
+              <div class="card-inline-row">
+                <div class="inline-field flex-grow">
+                  <span>Text:</span>
+                  <input id="watermark-text" type="text" placeholder="e.g. © 2026 Studio" maxlength="100" aria-label="Watermark text">
+                </div>
+              </div>
+              <div class="card-inline-row mt-4">
+                <div class="inline-field flex-grow">
+                  <span>Position:</span>
+                  <select id="watermark-pos" aria-label="Watermark position">
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="center">Center</option>
+                  </select>
+                </div>
+              </div>
+              <div class="card-inline-row mt-4">
+                <div class="inline-field flex-grow">
+                  <span>Opacity:</span>
+                  <input id="watermark-opacity" type="range" min="10" max="100" value="50" aria-label="Watermark opacity">
+                  <span class="unit-badge" id="watermark-opacity-val">50%</span>
+                </div>
+              </div>
+            </div>
+          </details>
 
           <!-- Batch Renaming -->
           <details class="control-card" id="name-more">

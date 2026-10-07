@@ -28,6 +28,13 @@ const ui = {
   aspectRatio: "auto",
   sharpen: 0,
   keepExif: true,
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  autoContrast: false,
+  watermarkText: "",
+  watermarkPos: "bottom-right",
+  watermarkOpacity: 50,
   subfolders: false,
   viewId: null,
   pinned: false,
@@ -208,6 +215,13 @@ const SETTINGS_MAP = {
   aspect_ratio: "aspectRatio",
   sharpen: "sharpen",
   keep_exif: "keepExif",
+  brightness: "brightness",
+  contrast: "contrast",
+  saturation: "saturation",
+  auto_contrast: "autoContrast",
+  watermark_text: "watermarkText",
+  watermark_pos: "watermarkPos",
+  watermark_opacity: "watermarkOpacity",
 };
 
 let settingsReady = false;
@@ -330,6 +344,46 @@ $("btn-save-preset").addEventListener("click", () => {
   toast(`Preset "${name.trim()}" saved to top bar!`);
 });
 
+// Export & Import Presets
+$("btn-export-presets").addEventListener("click", () => {
+  const custom = getCustomPresets();
+  if (!Object.keys(custom).length) {
+    toast("No custom presets to export yet. Save a preset first!");
+    return;
+  }
+  const blob = new Blob([JSON.stringify(custom, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "image_utilities_presets.json";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("Exported custom presets");
+});
+
+$("btn-import-presets").addEventListener("click", () => {
+  $("import-presets-file").click();
+});
+
+$("import-presets-file").addEventListener("change", async (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (typeof data !== "object" || data === null) throw new Error("Invalid preset format");
+    const existing = getCustomPresets();
+    const merged = { ...existing, ...data };
+    saveCustomPresets(merged);
+    renderPresets();
+    toast(`Imported ${Object.keys(data).length} presets successfully!`);
+  } catch (err) {
+    toast("Failed to import presets: " + err.message);
+  } finally {
+    $("import-presets-file").value = "";
+  }
+});
+
 // Clear Queue
 $("clear-all").addEventListener("click", async () => {
   try {
@@ -406,6 +460,7 @@ bindCheck("srgb", "srgb");
 bindCheck("no-upscale", "noUpscale");
 bindCheck("number", "number");
 bindCheck("keep-exif", "keepExif");
+bindCheck("auto-contrast", "autoContrast");
 bindNumber("fit-a", "fitA");
 bindNumber("fit-b", "fitB");
 bindNumber("padding", "padding");
@@ -416,6 +471,7 @@ bindText("prefix", "prefix");
 bindText("suffix", "suffix");
 bindText("find", "find");
 bindText("replace", "replace");
+bindText("watermark-text", "watermarkText");
 $("background-hex").addEventListener("input", () => {
   ui.backgroundHex = $("background-hex").value;
 });
@@ -427,6 +483,34 @@ $("sharpen").addEventListener("input", () => {
   ui.sharpen = Number($("sharpen").value) || 0;
   const val = $("sharpen-val");
   if (val) val.textContent = `${ui.sharpen}%`;
+  render(snapshot);
+});
+$("brightness").addEventListener("input", () => {
+  ui.brightness = Number($("brightness").value) || 100;
+  const val = $("brightness-val");
+  if (val) val.textContent = `${ui.brightness}%`;
+  render(snapshot);
+});
+$("contrast").addEventListener("input", () => {
+  ui.contrast = Number($("contrast").value) || 100;
+  const val = $("contrast-val");
+  if (val) val.textContent = `${ui.contrast}%`;
+  render(snapshot);
+});
+$("saturation").addEventListener("input", () => {
+  ui.saturation = Number($("saturation").value) || 100;
+  const val = $("saturation-val");
+  if (val) val.textContent = `${ui.saturation}%`;
+  render(snapshot);
+});
+$("watermark-pos").addEventListener("change", () => {
+  ui.watermarkPos = $("watermark-pos").value;
+  render(snapshot);
+});
+$("watermark-opacity").addEventListener("input", () => {
+  ui.watermarkOpacity = Number($("watermark-opacity").value) || 50;
+  const val = $("watermark-opacity-val");
+  if (val) val.textContent = `${ui.watermarkOpacity}%`;
   render(snapshot);
 });
 $("btn-undo").addEventListener("click", async () => {
@@ -705,6 +789,12 @@ function apply(data) {
     watch();
   } else if (prevBatchStatus === "running" && data.batch && data.batch.status === "done") {
     toast("Batch completed successfully! 🎉");
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("Image Utilities", {
+        body: `Batch complete: ${data.batch.items.length} pictures processed! 🎉`,
+        icon: "/static/favicon.svg",
+      });
+    }
   }
   render(data);
 }
@@ -729,6 +819,8 @@ function render(data) {
   show("panel-fit", ui.task !== "convert" && ui.task !== "rename");
   show("panel-edge", cuts);
   show("panel-canvas", cuts);
+  show("panel-tone", ui.task !== "rename" && ui.task !== "convert");
+  show("panel-watermark", ui.task !== "rename" && ui.task !== "convert");
   show("panel-file", ui.task !== "rename");
   show("fit-fields", ui.fit !== "none");
   show("fit-b-wrap", ui.fit === "box");
@@ -790,6 +882,27 @@ function render(data) {
   syncField("sharpen", ui.sharpen);
   const sharpenVal = $("sharpen-val");
   if (sharpenVal) sharpenVal.textContent = `${ui.sharpen}%`;
+
+  syncField("auto-contrast", ui.autoContrast);
+  syncField("brightness", ui.brightness);
+  const brightnessVal = $("brightness-val");
+  if (brightnessVal) brightnessVal.textContent = `${ui.brightness}%`;
+
+  syncField("contrast", ui.contrast);
+  const contrastVal = $("contrast-val");
+  if (contrastVal) contrastVal.textContent = `${ui.contrast}%`;
+
+  syncField("saturation", ui.saturation);
+  const saturationVal = $("saturation-val");
+  if (saturationVal) saturationVal.textContent = `${ui.saturation}%`;
+
+  syncField("watermark-text", ui.watermarkText);
+  const wmPos = $("watermark-pos");
+  if (wmPos && document.activeElement !== wmPos) wmPos.value = ui.watermarkPos;
+  syncField("watermark-opacity", ui.watermarkOpacity);
+  const wmOpacityVal = $("watermark-opacity-val");
+  if (wmOpacityVal) wmOpacityVal.textContent = `${ui.watermarkOpacity}%`;
+
   const arNode = $("aspect-ratio");
   if (arNode && document.activeElement !== arNode) arNode.value = ui.aspectRatio;
 
@@ -860,12 +973,28 @@ function renderOverall(batch) {
     return;
   }
   const values = batch.items.map(shownProgress);
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const mean = values.reduce((sum, value) => sum + value, 0) / (values.length || 1);
   bar.hidden = false;
   const pct = Math.round(mean * 100);
   $("overall-bar").style.width = `${pct}%`;
-  const doneCount = batch.items.filter((i) => i.status === "done").length;
-  $("overall-text").textContent = `Processing ${doneCount} of ${batch.items.length} (${pct}%)`;
+  const doneItems = batch.items.filter((i) => i.status === "done");
+  const doneCount = doneItems.length;
+  const total = batch.items.length;
+
+  let speedText = "";
+  if (doneCount > 0) {
+    const totalDoneSeconds = doneItems.reduce((acc, cur) => acc + (cur.seconds || 0), 0);
+    if (totalDoneSeconds > 0) {
+      const avgSecPerItem = totalDoneSeconds / doneCount;
+      const remainingItems = total - doneCount;
+      const remainingSec = Math.round(remainingItems * avgSecPerItem);
+      const speed = avgSecPerItem < 1 ? `${(1 / avgSecPerItem).toFixed(1)} img/s` : `${avgSecPerItem.toFixed(1)} s/img`;
+      const eta = remainingSec > 60 ? `${Math.floor(remainingSec / 60)}m ${remainingSec % 60}s` : `${remainingSec}s`;
+      speedText = ` · ~${eta} remaining (${speed})`;
+    }
+  }
+
+  $("overall-text").textContent = `Processing ${doneCount} of ${total} (${pct}%)${speedText}`;
 }
 
 function renderList(batch) {
@@ -1235,6 +1364,13 @@ function runBody() {
     aspect_ratio: ui.aspectRatio || "auto",
     sharpen: Number(ui.sharpen) || 0,
     keep_exif: Boolean(ui.keepExif),
+    brightness: Number(ui.brightness) || 100,
+    contrast: Number(ui.contrast) || 100,
+    saturation: Number(ui.saturation) || 100,
+    auto_contrast: Boolean(ui.autoContrast),
+    watermark_text: ui.watermarkText || "",
+    watermark_pos: ui.watermarkPos || "bottom-right",
+    watermark_opacity: Number(ui.watermarkOpacity) || 50,
   };
 }
 

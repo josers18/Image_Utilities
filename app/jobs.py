@@ -477,7 +477,14 @@ class Store:
         finally:
             with self.lock:
                 if self.batch is not None and self.batch.id == batch_id and self.batch.status == "running":
-                    self.batch.status = "cancelled" if self.cancel.is_set() else "done"
+                    is_cancelled = self.cancel.is_set()
+                    self.batch.status = "cancelled" if is_cancelled else "done"
+                    if not is_cancelled:
+                        done_count = sum(1 for it in self.batch.items if it.status == "done")
+                        send_system_notification(
+                            "Image Utilities",
+                            f"Batch complete: {done_count} picture{'s' if done_count != 1 else ''} processed! 🎉",
+                        )
             self.notify()
 
     def _cancel_from(self, items: list[Item], start_id: str) -> None:
@@ -594,3 +601,18 @@ def friendly_error(exc: Exception) -> str:
     if len(text) > 280:
         return text[:277] + "…"
     return text
+
+
+def send_system_notification(title: str, message: str) -> None:
+    try:
+        import platform
+        import subprocess
+
+        if platform.system() == "Darwin":
+            safe_title = title.replace('"', '\\"')
+            safe_msg = message.replace('"', '\\"')
+            script = f'display notification "{safe_msg}" with title "{safe_title}" sound name "Glass"'
+            subprocess.run(["osascript", "-e", script], check=False, timeout=3)
+    except Exception:
+        pass
+
