@@ -1179,9 +1179,10 @@ html:not([data-theme="light"]) .sun-icon { display: block; }
 .controls {
   padding: 12px 14px;
   gap: 8px;
-  overflow: hidden; /* ZERO SCROLLBAR: guaranteed to fit completely on-screen */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .preset-tag {
@@ -1326,11 +1327,36 @@ html:not([data-theme="light"]) .sun-icon { display: block; }
   box-shadow: 0 0 0 1px var(--accent);
 }
 
-/* Direct Zero-Scroll Parameters Container */
+/* Parameter Controls Scrollable Container */
 .inspector-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-active) transparent;
+}
+
+.inspector-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.inspector-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.inspector-body::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.inspector-body::-webkit-scrollbar-thumb:hover {
+  background: var(--border-active);
 }
 
 .control-card {
@@ -1520,21 +1546,26 @@ select:focus, .field input:focus, .fields input:focus {
   accent-color: var(--accent);
 }
 
-/* Renaming Details */
-#name-more summary {
+/* Collapsible Control Cards (Tone, Watermark, Renaming, etc.) */
+details.control-card summary {
   cursor: pointer;
   list-style: none;
   user-select: none;
+  transition: color var(--transition-fast);
 }
 
-#name-more summary::-webkit-details-marker { display: none; }
+details.control-card summary:hover {
+  color: var(--text-main);
+}
 
-#name-more summary::before {
+details.control-card summary::-webkit-details-marker { display: none; }
+
+details.control-card summary::before {
   content: "▸  ";
   color: var(--accent);
 }
 
-#name-more[open] summary::before {
+details.control-card[open] > summary::before {
   content: "▾  ";
 }
 
@@ -1652,6 +1683,12 @@ select:focus, .field input:focus, .fields input:focus {
   }
   .stage {
     min-height: 520px;
+  }
+  .controls {
+    overflow: visible;
+  }
+  .inspector-body {
+    overflow-y: visible;
   }
 }
 

@@ -136,7 +136,7 @@ Image Utilities Architecture
 │    Store & Batch Worker   │ │   Vanilla JS / CSS Client │
 │ • Thread-safe State Queue │ │ • Studio & Gallery Views  │
 │ • Preview Cache Manager   │ │ • Curtain / Side-by-Side  │
-│ • Progress Broadcaster    │ │ • Direct Zero-Scroll Panel│
+│ • Progress Broadcaster    │ │ • Docked Inspector Panel  │
 └─────────────┬─────────────┘ └───────────────────────────┘
               │
 ┌─────────────▼──────────────────────────────────────────┐
@@ -173,7 +173,7 @@ For full architectural details, concurrency models, and data pipeline specificat
 │       ├── app.css         # Apple HIG design system (Dark & Light modes)
 │       ├── app.js          # Reactive frontend, SSE listener, comparison
 │       ├── favicon.svg     # App icon
-│       └── index.html      # Responsive workspace and zero-scroll inspector
+│       └── index.html      # Responsive workspace and docked inspector
 ├── mac/
 │   ├── build.sh            # Rebuilds Image Utilities.app with custom icon
 │   └── main.swift          # Swift AppKit native launcher

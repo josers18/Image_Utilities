@@ -162,14 +162,14 @@ In addition to the Web/AppKit frontend, Image Utilities provides headless execut
 The user interface is built on modern Web standards with zero external JS/CSS dependencies:
 - **Design Tokens**: Defined in CSS variables (`--bg-app`, `--bg-panel`, `--accent`, `--border-subtle`) supporting macOS Dark & Light modes with instant runtime toggle.
 - **Top Presets Bar & Quick Recipe Save**: Built-in 1-click recipes (Product, 4× Art, Archival, Web Ready, Batch Rename) along the top header, plus custom recipe creation with "Save as Preset".
-- **Adaptive Zero-Scroll Direct Inspector**: Replaces nested scrollbars and disjointed tabs with a clean, task-adaptive layout. Selecting a task (Background Removal, Upscale, Both, Resize, Convert, Rename) immediately exposes all relevant controls on a single, visible surface without ghost scrolling:
+- **Docked Inspector with Scrollable Parameter Controls**: The inspector features a permanently docked task selector at the top and an action dock (with output destination selector and "Run Batch" button) at the bottom. Parameter cards reside in a smooth scrollable container (`.inspector-body`) with a slim theme-aware scrollbar, allowing full access to all settings (including expanded Tone & Adjustments, Watermark & Branding, and File Naming) across any screen resolution without pushing the action dock or Run button out of view. Collapsible cards feature clear disclosure indicators (`▸` / `▾`) and hover cues:
   - `Scale Factor & Model Look`: Photo vs Art/Anime presets in compact paired rows.
   - `Finished Size`: Context-aware dynamic labels ("Full AI Upscale 4×", "Original size 1×", Long edge, Width, Height, Bounding box, or % scale).
   - `Edge Quality & Matte`: Real-time hole filling, padding, drop shadow, and alpha/paper/custom hex backdrop.
   - `Aspect Ratio Canvas`: Instant standardized padding for E-Commerce (1:1), Instagram (4:5), Stories (9:16), or Widescreen (16:9).
   - `Sharpening Slider`: Integrated Unsharp Mask control (0–100%) for edge crispness.
   - `Export Format & EXIF`: Instant PNG, JPEG, WebP, SVG, and sRGB toggles with Camera EXIF retention toggle.
-  - `Collapsible File Naming`: Expandable details element for prefix, suffix, find/replace, and numbering.
+  - `Collapsible Control Cards`: Expandable `<details>` cards for Tone & Adjustments, Watermark & Branding, and File Naming with uniform disclosure toggles.
 - **Pro Comparison Studio**:
   - **Curtain Split**: CSS clip-path dynamically driven by an interactive grab handle.
   - **Side-by-Side**: Synchronized dual-canvas layout for widescreen displays.
